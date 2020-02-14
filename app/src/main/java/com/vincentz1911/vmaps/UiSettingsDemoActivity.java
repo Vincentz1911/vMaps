@@ -17,16 +17,17 @@
 package com.vincentz1911.vmaps;
 
 import android.Manifest;
+import android.app.FragmentTransaction;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.CheckBox;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -42,13 +43,9 @@ public class UiSettingsDemoActivity extends AppCompatActivity implements OnMapRe
 
     private UiSettings mUiSettings;
 
-    private CheckBox mMyLocationButtonCheckbox;
 
-    private CheckBox mMyLocationLayerCheckbox;
 
     private static final int MY_LOCATION_PERMISSION_REQUEST_CODE = 1;
-
-    private static final int LOCATION_LAYER_PERMISSION_REQUEST_CODE = 2;
 
     /**
      * Flag indicating whether a requested permission has been denied after returning in
@@ -61,19 +58,54 @@ public class UiSettingsDemoActivity extends AppCompatActivity implements OnMapRe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.ui_settings_demo);
 
-        mMyLocationButtonCheckbox = (CheckBox) findViewById(R.id.mylocationbutton_toggle);
-        mMyLocationLayerCheckbox = (CheckBox) findViewById(R.id.mylocationlayer_toggle);
-
-        SupportMapFragment mapFragment =
-                (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+
+
+//        Fragment newFragment = new Camera2VideoFragment();
+//        FragmentTransaction ft = getFragmentManager().beginTransaction();
+//        ft.add(CONTENT_VIEW_ID, newFragment).commit();
+        Fragment f = findFragmentById(R.id.video_container);
+
+        Camera2VideoFragment fragmentDemo = (Camera2VideoFragment)
+                getSupportFragmentManager().findFragmentById(R.id.video_container);
+        //above part is to determine which fragment is in your frame_container
+        setFragment(fragmentDemo);
+        (OR)
+                setFragment(new TestFragment1());
+
+
+
+//        getSupportFragmentManager()
+//                .beginTransaction()
+//                .add(R.id.video_container, , "")
+//                .disallowAddToBackStack()
+//                .commit();
+//
+//        Fragment f =
+//        if (null == savedInstanceState) { getFragmentManager().beginTransaction()
+//                    .replace(R.id.container, Camera2VideoFragment.newInstance())
+//                    .commit();
+//        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+            requestLocationPermission(MY_LOCATION_PERMISSION_REQUEST_CODE);
+
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+//            PermissionUtils.requestPermission(this, MY_LOCATION_PERMISSION_REQUEST_CODE, Manifest.permission.ACCESS_FINE_LOCATION, false);
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+//            PermissionUtils.requestPermission(this, MY_LOCATION_PERMISSION_REQUEST_CODE, Manifest.permission.ACCESS_COARSE_LOCATION, false);
+
     }
 
-    /**
-     * Returns whether the checkbox with the given id is checked.
-     */
-    private boolean isChecked(int id) {
-        return ((CheckBox) findViewById(id)).isChecked();
+
+    protected void setFragment(Fragment fragment) {
+        FragmentManager fragmentManager = getSupportFragmentManager().;
+        FragmentTransaction fragmentTransaction =
+                fragmentManager.beginTransaction();
+        fragmentTransaction.replace(android.R.id.content, fragment);
+        fragmentTransaction.commit();
     }
 
     @Override
@@ -83,14 +115,14 @@ public class UiSettingsDemoActivity extends AppCompatActivity implements OnMapRe
         mUiSettings = mMap.getUiSettings();
 
         // Keep the UI Settings state in sync with the checkboxes.
-        mUiSettings.setZoomControlsEnabled(isChecked(R.id.zoom_buttons_toggle));
-        mUiSettings.setCompassEnabled(isChecked(R.id.compass_toggle));
-        mUiSettings.setMyLocationButtonEnabled(isChecked(R.id.mylocationbutton_toggle));
-        mMap.setMyLocationEnabled(isChecked(R.id.mylocationlayer_toggle));
-        mUiSettings.setScrollGesturesEnabled(isChecked(R.id.scroll_toggle));
-        mUiSettings.setZoomGesturesEnabled(isChecked(R.id.zoom_gestures_toggle));
-        mUiSettings.setTiltGesturesEnabled(isChecked(R.id.tilt_toggle));
-        mUiSettings.setRotateGesturesEnabled(isChecked(R.id.rotate_toggle));
+        mUiSettings.setZoomControlsEnabled(true);
+        mUiSettings.setCompassEnabled(true);
+        mUiSettings.setMyLocationButtonEnabled(true);
+        mMap.setMyLocationEnabled(true);
+        mUiSettings.setScrollGesturesEnabled(true);
+        mUiSettings.setZoomGesturesEnabled(true);
+        mUiSettings.setTiltGesturesEnabled(true);
+        mUiSettings.setRotateGesturesEnabled(true);
     }
 
     /**
@@ -105,107 +137,19 @@ public class UiSettingsDemoActivity extends AppCompatActivity implements OnMapRe
         return true;
     }
 
-    public void setZoomButtonsEnabled(View v) {
-        if (!checkReady()) {
-            return;
-        }
-        // Enables/disables the zoom controls (+/- buttons in the bottom-right of the map for LTR
-        // locale or bottom-left for RTL locale).
-        mUiSettings.setZoomControlsEnabled(((CheckBox) v).isChecked());
-    }
 
-    public void setCompassEnabled(View v) {
-        if (!checkReady()) {
-            return;
-        }
-        // Enables/disables the compass (icon in the top-left for LTR locale or top-right for RTL
-        // locale that indicates the orientation of the map).
-        mUiSettings.setCompassEnabled(((CheckBox) v).isChecked());
-    }
-
-    public void setMyLocationButtonEnabled(View v) {
-        if (!checkReady()) {
-            return;
-        }
-        // Enables/disables the my location button (this DOES NOT enable/disable the my location
-        // dot/chevron on the map). The my location button will never appear if the my location
-        // layer is not enabled.
-        // First verify that the location permission has been granted.
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mUiSettings.setMyLocationButtonEnabled(mMyLocationButtonCheckbox.isChecked());
-        } else {
-            // Uncheck the box and request missing location permission.
-            mMyLocationButtonCheckbox.setChecked(false);
-            requestLocationPermission(MY_LOCATION_PERMISSION_REQUEST_CODE);
-        }
-    }
-
-    public void setMyLocationLayerEnabled(View v) {
-        if (!checkReady()) {
-            return;
-        }
-        // Enables/disables the my location layer (i.e., the dot/chevron on the map). If enabled, it
-        // will also cause the my location button to show (if it is enabled); if disabled, the my
-        // location button will never show.
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(mMyLocationLayerCheckbox.isChecked());
-        } else {
-            // Uncheck the box and request missing location permission.
-            mMyLocationLayerCheckbox.setChecked(false);
-            PermissionUtils.requestPermission(this, LOCATION_LAYER_PERMISSION_REQUEST_CODE,
-                    Manifest.permission.ACCESS_FINE_LOCATION, false);
-        }
-    }
-
-    public void setScrollGesturesEnabled(View v) {
-        if (!checkReady()) {
-            return;
-        }
-        // Enables/disables scroll gestures (i.e. panning the map).
-        mUiSettings.setScrollGesturesEnabled(((CheckBox) v).isChecked());
-    }
-
-    public void setZoomGesturesEnabled(View v) {
-        if (!checkReady()) {
-            return;
-        }
-        // Enables/disables zoom gestures (i.e., double tap, pinch & stretch).
-        mUiSettings.setZoomGesturesEnabled(((CheckBox) v).isChecked());
-    }
-
-    public void setTiltGesturesEnabled(View v) {
-        if (!checkReady()) {
-            return;
-        }
-        // Enables/disables tilt gestures.
-        mUiSettings.setTiltGesturesEnabled(((CheckBox) v).isChecked());
-    }
-
-    public void setRotateGesturesEnabled(View v) {
-        if (!checkReady()) {
-            return;
-        }
-        // Enables/disables rotate gestures.
-        mUiSettings.setRotateGesturesEnabled(((CheckBox) v).isChecked());
-    }
 
     /**
      * Requests the fine location permission. If a rationale with an additional explanation should
      * be shown to the user, displays a dialog that triggers the request.
      */
     public void requestLocationPermission(int requestCode) {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)) {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
             // Display a dialog with rationale.
-            PermissionUtils.RationaleDialog
-                    .newInstance(requestCode, false).show(
-                    getSupportFragmentManager(), "dialog");
+            PermissionUtils.RationaleDialog.newInstance(requestCode, false).show(getSupportFragmentManager(), "dialog");
         } else {
             // Location permission has not been granted yet, request it.
-            PermissionUtils.requestPermission(this, requestCode,
-                    Manifest.permission.ACCESS_FINE_LOCATION, false);
+            PermissionUtils.requestPermission(this, requestCode, Manifest.permission.ACCESS_FINE_LOCATION, false);
         }
     }
 
@@ -217,17 +161,6 @@ public class UiSettingsDemoActivity extends AppCompatActivity implements OnMapRe
             if (PermissionUtils.isPermissionGranted(permissions, grantResults,
                     Manifest.permission.ACCESS_FINE_LOCATION)) {
                 mUiSettings.setMyLocationButtonEnabled(true);
-                mMyLocationButtonCheckbox.setChecked(true);
-            } else {
-                mLocationPermissionDenied = true;
-            }
-
-        } else if (requestCode == LOCATION_LAYER_PERMISSION_REQUEST_CODE) {
-            // Enable the My Location layer if the permission has been granted.
-            if (PermissionUtils.isPermissionGranted(permissions, grantResults,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-                mMap.setMyLocationEnabled(true);
-                mMyLocationLayerCheckbox.setChecked(true);
             } else {
                 mLocationPermissionDenied = true;
             }
@@ -238,8 +171,7 @@ public class UiSettingsDemoActivity extends AppCompatActivity implements OnMapRe
     protected void onResumeFragments() {
         super.onResumeFragments();
         if (mLocationPermissionDenied) {
-            PermissionUtils.PermissionDeniedDialog
-                    .newInstance(false).show(getSupportFragmentManager(), "dialog");
+            PermissionUtils.PermissionDeniedDialog.newInstance(false).show(getSupportFragmentManager(), "dialog");
             mLocationPermissionDenied = false;
         }
     }
